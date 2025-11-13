@@ -39,7 +39,7 @@ import ucsmconectamod.composeapp.generated.resources.Res
 import ucsmconectamod.composeapp.generated.resources.campusUcsmTarde
 
 @Composable
-actual fun LoginApp() {
+actual fun LoginApp(startActivityAsistant: () -> Unit) {
     val context = LocalContext.current
     val painter = painterResource(Res.drawable.campusUcsmTarde)
     val headerHeight = 80.dp
@@ -110,9 +110,7 @@ actual fun LoginApp() {
                         .padding(top = headerHeight)
                 ) {
                     BodyLogin(
-                        onLoginSuccess = {
-                            context.startActivity(Intent(context, AsistantActivity::class.java))
-                        }
+                        onLoginSuccess = { startActivityAsistant() }
                     )
                 }
             }

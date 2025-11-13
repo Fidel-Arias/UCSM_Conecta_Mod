@@ -4,6 +4,8 @@ import androidx.compose.ui.graphics.Color
 
 val PrimaryColor = Color(0xFF3EC4AB) // Cyan primario
 val SecondaryColor = Color(0xFF9f9f9f) // Gris oscuro secundario
+
+val SoftGray = Color(0xFFE3E3E3) // Gris suave
 val TertiaryColor = Color(0xFF92F0EA) // Cyan claro
 val ErrorColor = Color(0xFFF44336) // Rojo de error
 val CircleOnline = Color(0xFF34C759) // Color verde

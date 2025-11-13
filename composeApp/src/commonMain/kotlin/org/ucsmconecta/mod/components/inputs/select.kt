@@ -1,6 +1,7 @@
 package org.ucsmconecta.mod.components.inputs
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,31 +27,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.ucsmconecta.mod.components.icons.getIconArrowDropDown
 import org.ucsmconecta.mod.components.icons.getIconArrowDropUp
+import org.ucsmconecta.mod.ui.theme.SoftGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomSelect(
     label: String,
     opciones: List<String>,
+    onOptionSelected: (String) -> Unit,
     ancho: Float = 1f, // Ancho opcional para el selector
 ) {
-    // Menú desplegable o un selector de opciones
-    // Se puede usar componentes como DropdownMenu, Spinner, etc.
-
-    var selectedOption by remember { mutableStateOf(opciones[0]) }
+    // Menú desplegable
+    var selectedOption by rememberSaveable { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = Modifier.fillMaxWidth(ancho),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded },
-            modifier = Modifier.fillMaxWidth(ancho)
         ) {
             TextField(
-                value = selectedOption,
+                value = selectedOption.ifEmpty { label },
                 onValueChange = {},
                 readOnly = true,
                 label = {
@@ -59,9 +60,7 @@ fun CustomSelect(
                         fontWeight = FontWeight.Bold
                     )
                 },
-                textStyle = TextStyle(
-                    color = Color.Gray,
-                ),
+                textStyle = TextStyle(color = if (selectedOption.isEmpty()) Color.Gray else Color.Black),
                 trailingIcon = {
                     Icon(
                         imageVector = if (expanded) getIconArrowDropUp() else getIconArrowDropDown(),
@@ -73,16 +72,13 @@ fun CustomSelect(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    focusedContainerColor = Color(0xFFE3E3E3), // gris suave
-                    unfocusedContainerColor = Color(0xFFE3E3E3)
+                    focusedContainerColor = SoftGray, // gris suave
+                    unfocusedContainerColor = SoftGray
                 ),
                 modifier = Modifier
-                    .menuAnchor(
-                        type = MenuAnchorType.PrimaryNotEditable,
-                        enabled = true
-                    )
-                    .fillMaxWidth()
+                    .menuAnchor()
                     .clip(RoundedCornerShape(12.dp))
+                    .fillMaxWidth()
             )
 
             ExposedDropdownMenu(
@@ -95,6 +91,7 @@ fun CustomSelect(
                         onClick = {
                             selectedOption = opcion
                             expanded = false
+                            onOptionSelected(opcion)
                         }
                     )
                 }

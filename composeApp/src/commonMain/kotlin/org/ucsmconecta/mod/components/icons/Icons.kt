@@ -28,3 +28,12 @@ expect fun getIconInfo(): ImageVector
 
 // Icon of user add
 expect fun getIconUserAdd(): ImageVector
+
+// Icon of error
+expect fun getIconError(): ImageVector
+
+// Icon of check circle
+expect fun getIconCheckCircle(): ImageVector
+
+// Icon of Wifi off
+expect fun getIconWifiOff(): ImageVector

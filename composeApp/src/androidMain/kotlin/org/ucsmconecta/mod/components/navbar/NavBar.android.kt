@@ -1,12 +1,14 @@
 package org.ucsmconecta.mod.components.navbar
 
 import android.app.Activity
+import android.content.Intent
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.ucsmconecta.mod.activities.LoginActivity
+import org.ucsmconecta.mod.utils.getTokenStorage
 
 @Composable
 actual fun NavBar(
@@ -18,7 +20,13 @@ actual fun NavBar(
         selectedItem = selectedItemNavbar,
         onItemSelected = { newItem ->
             if (newItem == 3) {
-                (context as? Activity)?.finish()
+                CoroutineScope(Dispatchers.IO).launch {
+                    getTokenStorage().clear()
+                }
+                (context as? Activity)?.let { activity ->
+                    activity.startActivity(Intent(activity, LoginActivity::class.java))
+                    activity.finish()
+                }
             } else {
                 onItemSelected(newItem)
             }

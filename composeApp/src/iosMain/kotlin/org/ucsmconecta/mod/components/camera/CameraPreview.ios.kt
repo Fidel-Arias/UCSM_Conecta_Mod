@@ -21,7 +21,8 @@ import platform.AVFoundation.requestAccessForMediaType
 @Composable
 actual fun CameraPreview(
     reductionFactor: Float,
-    onCameraStatusChanged: (Boolean, Boolean) -> Unit
+    onCameraStatusChanged: (Boolean, Boolean) -> Unit,
+    onQrDetected: (String) -> Unit
 ) {
     val granted = remember { mutableStateOf(false) }
     val permanentlyDenied = remember { mutableStateOf(false) }

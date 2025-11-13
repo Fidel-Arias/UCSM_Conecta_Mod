@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,29 +22,36 @@ import org.ucsmconecta.mod.components.camera.CameraWithFrame
 import org.ucsmconecta.mod.components.info.ImportantMessage
 import org.ucsmconecta.mod.components.inputs.CustomSelect
 import org.ucsmconecta.mod.components.inputs.InputTextField
+import org.ucsmconecta.mod.components.message.MessageModal
 import org.ucsmconecta.mod.components.titles.divider.DividerConTexto
+import org.ucsmconecta.mod.viewModel.RefrigerioViewModel
+import org.ucsmconecta.mod.viewModel.ScannerViewModel
 
 @Composable
-fun BodyRegistroRefrigerio() {
+fun BodyRegistroRefrigerio(
+    scannerViewModel: ScannerViewModel,
+    congresoCod: String
+) {
     var input by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
+
+    val mensajeAsistencia by scannerViewModel.mensajeAsistencia.collectAsState()
+    val tipoMensaje by scannerViewModel.tipoMensaje.collectAsState()
     Column(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-        CameraWithFrame()
+        CameraWithFrame(
+            scannerViewModel = scannerViewModel,
+            bloqueId = null,
+            congresoCod = congresoCod
+        )
         Spacer(Modifier.height(10.dp))
         ImportantMessage(
             text = "Esta sección es para los refrigerios de los participantes.",
             fontSize = 13,
-        )
-        Spacer(Modifier.height(10.dp))
-        CustomSelect(
-            label = "# de Refrigerio",
-            opciones = listOf("Selecciona una opción","Refrigerio 1", "Refrigerio 2", "Refrigerio 3", "Refrigerio 4"),
-            ancho = .8f
         )
         Spacer(Modifier.height(10.dp))
         DividerConTexto(
@@ -61,13 +69,24 @@ fun BodyRegistroRefrigerio() {
             isRequired = true,
             maxLength = 10,
             isError = input.length < 8,
-            errorMessage = "Ingrese al menos 12 caracteres"
+            errorMessage = "Ingrese al menos 8 caracteres"
         )
         Spacer(Modifier.height(12.dp))
         CustomButton(
             text = "Marcar",
             anchoButton = .8f,
-            onClick = { /* Acción al hacer clic en el botón */ }
+            onClick = { scannerViewModel.registrarRefrigerio(
+                documentoParticipante = input,
+                congresoCod = congresoCod
+            ) }
+        )
+    }
+    // Mostrar modal si hay mensaje (success o error)
+    mensajeAsistencia?.let { msg ->
+        MessageModal(
+            message = msg,
+            isError = tipoMensaje == false,
+            onDismiss = { scannerViewModel.clearMensaje() }
         )
     }
 }

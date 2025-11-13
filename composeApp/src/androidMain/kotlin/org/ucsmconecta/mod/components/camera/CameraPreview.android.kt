@@ -2,10 +2,14 @@ package org.ucsmconecta.mod.components.camera
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Log
 import android.view.ViewGroup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -31,12 +35,16 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
 import org.ucsmconecta.mod.service.context.findActivity
 
+@OptIn(ExperimentalGetImage::class)
 @Composable
 actual fun CameraPreview(
     reductionFactor: Float,
-    onCameraStatusChanged: (Boolean, Boolean) -> Unit
+    onCameraStatusChanged: (Boolean, Boolean) -> Unit,
+    onQrDetected: (String) -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -120,6 +128,35 @@ actual fun CameraPreview(
                     )
                 }
 
+                val barcodeScanner = BarcodeScanning.getClient()
+
+                val analysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+                    .also { analysisUseCase ->
+                        analysisUseCase.setAnalyzer(
+                            ContextCompat.getMainExecutor(context)
+                        ) { imageProxy ->
+                            val mediaImage = imageProxy.image
+                            if (mediaImage != null) {
+                                val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+                                barcodeScanner.process(image)
+                                    .addOnSuccessListener { barcodes ->
+                                        barcodes.firstOrNull()?.rawValue?.let { qr ->
+                                            // Aquí puedes emitir el QR leído a tu lógica
+                                            Log.d("QRScanner", "QR detectado: $qr")
+                                            onQrDetected(qr)
+                                        }
+                                    }
+                                    .addOnCompleteListener {
+                                        imageProxy.close()
+                                    }
+                            } else {
+                                imageProxy.close()
+                            }
+                        }
+                    }
+
                 // Configurar cámara
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
                 val preview = Preview.Builder().build().apply {
@@ -133,7 +170,8 @@ actual fun CameraPreview(
                     cameraProvider.bindToLifecycle(
                         lifecycleOwner,
                         cameraSelector,
-                        preview
+                        preview,
+                        analysis
                     )
                 } catch (exc: Exception) {
                     exc.printStackTrace()

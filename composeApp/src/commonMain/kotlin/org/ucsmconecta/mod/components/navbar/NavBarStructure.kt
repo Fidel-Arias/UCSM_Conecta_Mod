@@ -19,6 +19,7 @@ fun NavBarStructure(
     selectedItem: Int,
     onItemSelected: (Int) -> Unit
 ) {
+
     NavigationBar(
         containerColor = Color.White
     ) {

@@ -37,3 +37,15 @@ actual fun getIconInfo(): ImageVector {
 actual fun getIconUserAdd(): ImageVector {
     TODO("Not yet implemented")
 }
+
+actual fun getIconError(): ImageVector {
+    TODO("Not yet implemented")
+}
+
+actual fun getIconCheckCircle(): ImageVector {
+    TODO("Not yet implemented")
+}
+
+actual fun getIconWifiOff(): ImageVector {
+    TODO("Not yet implemented")
+}

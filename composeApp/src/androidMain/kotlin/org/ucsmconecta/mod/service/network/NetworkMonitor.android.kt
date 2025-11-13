@@ -21,7 +21,8 @@ class AndroidNetworkMonitor(
 
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                trySend(true)
+                // Verificar conectividad real
+                trySend(checkInternetAccess())
             }
 
             override fun onLost(network: Network) {
@@ -35,16 +36,27 @@ class AndroidNetworkMonitor(
 
         connectivityManager.registerNetworkCallback(request, callback)
 
-        // Emitir el estado inicial
-        val network = connectivityManager.activeNetwork
-        val capabilities = connectivityManager.getNetworkCapabilities(network)
-        val connected = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
-        trySend(connected)
+        // Estado inicial
+        trySend(checkInternetAccess())
 
         awaitClose {
             connectivityManager.unregisterNetworkCallback(callback)
         }
     }.distinctUntilChanged()
+
+    private fun checkInternetAccess(): Boolean {
+        return try {
+            val url = java.net.URL("https://clients3.google.com/generate_204")
+            val connection = url.openConnection() as java.net.HttpURLConnection
+            connection.setRequestProperty("User-Agent", "Android")
+            connection.setRequestProperty("Connection", "close")
+            connection.connectTimeout = 1500
+            connection.connect()
+            connection.responseCode == 204
+        } catch (e: Exception) {
+            false
+        }
+    }
 }
 
 lateinit var appContext: Context
