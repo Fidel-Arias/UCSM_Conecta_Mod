@@ -271,7 +271,9 @@ fun RegistroDniDialog(
                             } else {
                                 CustomSelect(
                                     label = "Bloque",
-                                    opciones = listOf("Seleccione un bloque") + bloques.map {
+                                    opciones = listOf("Seleccione un bloque") + bloques
+                                        .filter { it.ubicacion.id == selectedUbicacion?.id }
+                                        .map {
                                         "${it.horaInicial} - ${it.horaFinal}: ${it.ponencia.nombre}"
                                     },
                                     onOptionSelected = { selectedText ->
