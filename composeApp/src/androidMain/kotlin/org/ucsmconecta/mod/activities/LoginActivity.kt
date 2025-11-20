@@ -8,11 +8,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import org.ucsmconecta.mod.interfaceApp.LoginApp
+import org.ucsmconecta.mod.utils.TokenStorage
+import org.ucsmconecta.mod.utils.getTokenStorage
 
 class LoginActivity : ComponentActivity() {
+    // Nombre del archivo de preferencias
+    private val tokenStorage: TokenStorage = getTokenStorage()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -25,32 +30,24 @@ class LoginActivity : ComponentActivity() {
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
-        // Crear la master key
-        val masterKey = MasterKey.Builder(this)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
+        lifecycleScope.launch {
+            // getToken() ya se encarga de:
+            // 1. Inicializar EncryptedSharedPreferences (con MasterKey y manejo de errores).
+            // 2. Comprobar si hay un token válido.
+            val token = tokenStorage.getToken()
 
-        // Usar las mismas preferencias seguras
-        val prefs = EncryptedSharedPreferences.create(
-            this,
-            "auth_prefs", // mismo nombre que en TokenStorageAndroid
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+            if (token != null) {
+                startActivityAsistant()
+                finish()
+                return@launch
+            }
 
-        val token = prefs.getString("jwt_token", null)
-
-        if (token != null) {
-            startActivityAsistant()
-            finish()
-            return
-        }
-
-        setContent {
-            LoginApp { startActivityAsistant() }
+            setContent {
+                LoginApp { startActivityAsistant() }
+            }
         }
     }
+
     private fun startActivityAsistant() {
         startActivity(Intent(this, AsistantActivity::class.java))
     }
